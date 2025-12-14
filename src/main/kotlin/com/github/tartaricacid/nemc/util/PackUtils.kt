@@ -30,11 +30,6 @@ class PackUtils {
 
             val header = jsonObject.getAsJsonObject("header")
             val uuid = header.get("uuid").asString
-            val name = if (header.has("name")) {
-                header.get("name").asString
-            } else {
-                uuid + "Pack"
-            }
             val versionArray = header.getAsJsonArray("version")
             val version = versionArray.joinToString(".") { it.asInt.toString() }
 
@@ -51,7 +46,7 @@ class PackUtils {
 
             return if (packType != null) {
                 val path = manifestPath.parent
-                PackInfo(name, packType, uuid, version, path)
+                PackInfo(packType, uuid, version, path)
             } else {
                 null
             }
@@ -59,7 +54,6 @@ class PackUtils {
     }
 
     data class PackInfo(
-        val name: String,
         val type: PackType,
         val uuid: String,
         val version: String,

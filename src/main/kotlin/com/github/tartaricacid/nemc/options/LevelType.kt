@@ -1,4 +1,4 @@
-package com.github.tartaricacid.nemc.setting
+package com.github.tartaricacid.nemc.options
 
 enum class LevelType {
     DEFAULT,

@@ -1,7 +1,7 @@
 package com.github.tartaricacid.nemc
 
 import com.github.tartaricacid.nemc.run.MCRunConfiguration
-import com.github.tartaricacid.nemc.setting.MCRunConfigurationOptions
+import com.github.tartaricacid.nemc.options.MCRunConfigurationOptions
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.SimpleConfigurationType
 import com.intellij.icons.AllIcons

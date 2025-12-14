@@ -1,20 +1,23 @@
 package com.github.tartaricacid.nemc.util
 
+import com.intellij.execution.ExecutionException
 import org.cloudburstmc.nbt.NbtUtils
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Path
 
+@Suppress("DialogTitleCapitalization")
 class LevelDataUtils {
     companion object {
         /**
          * 将打包的默认 level.dat 复制到目标世界文件夹。成功返回 true。
          */
-        fun createDefaultLevelData(worldFolder: Path): Boolean {
+        @Throws(ExecutionException::class)
+        fun createDefaultLevelData(worldFolder: Path) {
             val stream = object {}.javaClass.classLoader.getResourceAsStream("data/level.dat")
             if (stream == null) {
-                return false
+                throw ExecutionException("默认 level.dat 资源文件未找到")
             }
             val targetPath = worldFolder.resolve("level.dat")
             try {
@@ -24,10 +27,8 @@ class LevelDataUtils {
                     }
                 }
             } catch (e: IOException) {
-                return false
+                throw ExecutionException("创建默认 level.dat 文件失败：${e.message}", e)
             }
-
-            return true
         }
 
         /**

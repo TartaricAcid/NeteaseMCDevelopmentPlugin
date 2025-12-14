@@ -1,9 +1,8 @@
-package com.github.tartaricacid.nemc.setting
+package com.github.tartaricacid.nemc.options
 
 import com.intellij.execution.configurations.RunConfigurationOptions
 import java.util.*
 import kotlin.random.Random
-import kotlin.random.nextLong
 
 class MCRunConfigurationOptions : RunConfigurationOptions() {
     private val gameExecutablePathProperty = string("").provideDelegate(this, "gameExecutablePath")
@@ -32,16 +31,16 @@ class MCRunConfigurationOptions : RunConfigurationOptions() {
             includedModDirsProperty.setValue(this, list)
         }
 
-    var worldFolderName: String?
-        get() = worldFolderNameProperty.getValue(this)
+    var worldFolderName: String
+        get() = worldFolderNameProperty.getValue(this) ?: UUID.randomUUID().toString()
         set(value) = worldFolderNameProperty.setValue(this, value)
 
     var worldSeed: Long
         get() = worldSeedProperty.getValue(this)
         set(value) = worldSeedProperty.setValue(this, value)
 
-    var userName: String?
-        get() = userNameProperty.getValue(this)
+    var userName: String
+        get() = userNameProperty.getValue(this) ?: "DevOps"
         set(value) = userNameProperty.setValue(this, value)
 
     var gameMode: GameMode

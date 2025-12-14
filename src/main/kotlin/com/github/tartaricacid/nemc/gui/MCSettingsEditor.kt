@@ -1,26 +1,39 @@
 package com.github.tartaricacid.nemc.gui
 
+import com.github.tartaricacid.nemc.options.GameMode
+import com.github.tartaricacid.nemc.options.LevelType
 import com.github.tartaricacid.nemc.run.MCRunConfiguration
-import com.github.tartaricacid.nemc.setting.GameMode
-import com.github.tartaricacid.nemc.setting.LevelType
 import com.github.tartaricacid.nemc.util.FileUtils
+import com.github.tartaricacid.nemc.util.PathUtils
+import com.intellij.icons.AllIcons
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EnumComboBoxModel
 import com.intellij.ui.TextFieldWithHistoryWithBrowseButton
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.fields.ExtendableTextComponent
+import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.ui.components.textFieldWithHistoryWithBrowseButton
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
+import java.awt.Desktop
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.exists
+import kotlin.random.Random
 
 @Suppress("DialogTitleCapitalization")
 class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
@@ -29,6 +42,8 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
     private lateinit var gameExeField: TextFieldWithHistoryWithBrowseButton
 
     private lateinit var includedModDirs: JBList<String>
+
+    private lateinit var worldFolder: ExtendableTextField
 
     private lateinit var worldSeedField: JBTextField
     private lateinit var userNameField: JBTextField
@@ -80,6 +95,52 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
             }
 
             collapsibleGroup("世界设置") {
+                row("游戏存档：") {
+                    worldFolder = cell(ExtendableTextField()).align(Align.FILL).component
+
+                    worldFolder.addExtension(
+                        ExtendableTextComponent.Extension.create(
+                            AllIcons.Actions.GC,
+                            AllIcons.Actions.GC,
+                            "删除"
+                        ) {
+                            if (worldFolder.text.isNotEmpty()) {
+                                val path = Paths.get(worldFolder.text)
+                                if (Files.exists(path)) {
+                                    // 打开 IDEA 弹窗，二次确认是否删除
+                                    val result = Messages.showYesNoDialog(
+                                        "确定要将存档 \"${path.fileName}\" 移动至回收站吗？",
+                                        "删除存档",
+                                        "删除",
+                                        "取消",
+                                        AllIcons.General.WarningDialog
+                                    )
+                                    if (result == Messages.YES) {
+                                        // 移动至回收站
+                                        Desktop.getDesktop().moveToTrash(path.toFile())
+                                        worldFolder.isEnabled = false
+                                    }
+                                }
+                            }
+                        }
+                    )
+
+                    worldFolder.addExtension(
+                        ExtendableTextComponent.Extension.create(
+                            AllIcons.Actions.MenuOpen,
+                            AllIcons.Actions.MenuOpen,
+                            "浏览"
+                        ) {
+                            if (worldFolder.text.isNotEmpty()) {
+                                val path = Paths.get(worldFolder.text)
+                                if (Files.exists(path)) {
+                                    RevealFileAction.openDirectory(path.toFile())
+                                }
+                            }
+                        }
+                    )
+                }
+
                 row("世界种子：") {
                     worldSeedField = textField().align(Align.Companion.FILL).component
                     worldSeedField.emptyText.text = "默认随机种子"
@@ -120,12 +181,24 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
 
     override fun resetEditorFrom(config: MCRunConfiguration) {
         // 直接把配置的值写到组件上，保证 UI 刷新
-        gameExeField.text = config.options.gameExecutablePath
+        if (!config.options.gameExecutablePath.isNullOrEmpty()) {
+            gameExeField.text = config.options.gameExecutablePath
+        }
 
         var includedModDirsData = includedModDirs.model
         if (includedModDirsData is DefaultListModel<String>) {
             includedModDirsData.clear()
             includedModDirsData.addAll(config.options.includedModDirs)
+        }
+
+        // 验证存档目录是否存在，启用/禁用存档管理按钮
+        val worldDirPath = PathUtils.worldsDir()
+        if (worldDirPath != null) {
+            val worldFolder = worldDirPath.resolve(config.options.worldFolderName)
+            this.worldFolder.text = worldFolder.absolutePathString()
+            this.worldFolder.isEnabled = worldFolder.exists()
+        } else {
+            this.worldFolder.isEnabled = false
         }
 
         worldSeedField.text = config.options.worldSeed.toString()
@@ -142,6 +215,9 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
 
     override fun applyEditorTo(config: MCRunConfiguration) {
         // 从组件读取最新值写回配置
+        if (gameExeField.text.isBlank()) {
+            throw ConfigurationException("启动程序路径不能为空", "配置错误")
+        }
         config.options.gameExecutablePath = gameExeField.text
 
         config.options.includedModDirs.clear()
@@ -149,7 +225,11 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
             config.options.includedModDirs += includedModDirs.model.getElementAt(i)
         }
 
+        if (worldSeedField.text.isNullOrEmpty()) {
+            worldSeedField.text = Random.nextLong().toString()
+        }
         config.options.worldSeed = worldSeedField.text.toLong()
+
         config.options.userName = userNameField.text
 
         config.options.gameMode = gameModeField.selectedItem as GameMode

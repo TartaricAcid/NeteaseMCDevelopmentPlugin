@@ -1,6 +1,6 @@
 package com.github.tartaricacid.nemc.run
 
-import com.github.tartaricacid.nemc.setting.MCRunConfigurationOptions
+import com.github.tartaricacid.nemc.options.MCRunConfigurationOptions
 import com.github.tartaricacid.nemc.util.FileUtils
 import com.github.tartaricacid.nemc.util.LevelDataUtils
 import com.github.tartaricacid.nemc.util.PackUtils
@@ -10,23 +10,26 @@ import com.github.tartaricacid.nemc.util.PathUtils
 import com.google.common.collect.Lists
 import com.google.common.collect.Maps
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import org.cloudburstmc.nbt.NbtMap
 import org.cloudburstmc.nbt.NbtMapBuilder
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.extension
 
-class BeforeRun {
+@Suppress("DialogTitleCapitalization")
+class ConfigRunTask {
     companion object {
         @Throws(ExecutionException::class)
-        fun check(project: Project, config: MCRunConfigurationOptions) {
+        fun run(project: Project, config: MCRunConfigurationOptions): GeneralCommandLine {
             // 检查启动器路径
             val gamePath = Paths.get(config.gameExecutablePath ?: "")
-            if (!Files.isRegularFile(gamePath) || !gamePath.fileName.toString().endsWith(".exe")) {
-                throw ExecutionException("Invalid game executable path: ${config.gameExecutablePath}")
+            if (!Files.isRegularFile(gamePath) || gamePath.fileName.extension != "exe") {
+                throw ExecutionException("启动程序路径错误：${config.gameExecutablePath}")
             }
 
             // 清空符号链接
@@ -37,7 +40,7 @@ class BeforeRun {
             val packMaps: EnumMap<PackType, MutableList<PackInfo>> = Maps.newEnumMap(PackType::class.java)
             val projectPath = project.basePath
             if (projectPath == null) {
-                throw ExecutionException("Project path is null.")
+                throw ExecutionException("当前项目路径为空")
             }
             PackUtils.parsePack(Paths.get(projectPath), packMaps)
 
@@ -64,9 +67,9 @@ class BeforeRun {
             // 读取或新建存档
             val worldDir = PathUtils.worldsDir()
             if (worldDir == null) {
-                throw ExecutionException("Worlds directory not found.")
+                throw ExecutionException("存档文件夹路径获取失败")
             }
-            val worldFolderPath = worldDir.resolve(config.worldFolderName ?: UUID.randomUUID().toString())
+            val worldFolderPath = worldDir.resolve(config.worldFolderName)
             if (!Files.isDirectory(worldFolderPath)) {
                 Files.createDirectories(worldFolderPath)
             }
@@ -74,10 +77,7 @@ class BeforeRun {
             // 检查 level.dat 是否存在，不存在则创建一个默认的
             val levelDatPath = worldFolderPath.resolve("level.dat")
             if (!Files.isRegularFile(levelDatPath)) {
-                val success = LevelDataUtils.createDefaultLevelData(worldFolderPath)
-                if (!success) {
-                    throw ExecutionException("Failed to create default level.dat in $worldFolderPath")
-                }
+                LevelDataUtils.createDefaultLevelData(worldFolderPath)
             }
 
             // 读取 level.dat 内容
@@ -86,16 +86,16 @@ class BeforeRun {
                     LevelDataUtils.readNbt(input)
                 }
             } catch (e: Exception) {
-                throw ExecutionException("Failed to read level.dat in $levelDatPath", e)
+                throw ExecutionException("读取 $levelDatPath 文件失败：${e.message}", e)
             }
 
             // 检查
             val tag = tagInfo.tag
             if (tag !is NbtMap) {
-                throw ExecutionException("Tag is not a nbt")
+                throw ExecutionException("level.dat 格式错误")
             }
             if (tag.isEmpty()) {
-                throw ExecutionException("Tag is empty")
+                throw ExecutionException("level.dat 内容为空")
             }
             val builder = NbtMapBuilder.from(tag)
 
@@ -125,19 +125,17 @@ class BeforeRun {
                     LevelDataUtils.writerNbt(output, builder.build(), tagInfo.version)
                 }
             } catch (e: Exception) {
-                throw ExecutionException("Failed to write level.dat in $levelDatPath", e)
+                throw ExecutionException("保存 $levelDatPath 文件失败：${e.message}", e)
             }
 
             // 写清单文件
-            val behPacksManifest = Lists.newArrayList<PackManifest>()
-            val resPacksManifest = Lists.newArrayList<PackManifest>()
+            val behPacksManifest = Lists.newArrayList<Any>()
+            val resPacksManifest = Lists.newArrayList<Any>()
             for ((type, packList) in packMaps) {
                 for (pack in packList) {
-                    // 基岩版要求版本号格式为 x.y.z，存储为 "version": [x, y, z]
-                    val versionParts = pack.version.split(".").mapNotNull { it.toIntOrNull() }
-                    val manifest = PackManifest(
-                        packId = pack.uuid,
-                        version = versionParts
+                    val manifest = mapOf(
+                        "pack_id" to pack.uuid,
+                        "version" to pack.version.split(".").mapNotNull { it.toIntOrNull() }
                     )
                     when (type) {
                         PackType.BEHAVIOR -> behPacksManifest.add(manifest)
@@ -159,31 +157,29 @@ class BeforeRun {
 
             // 开始写启动参数文件
             val launchConfigPath = worldFolderPath.resolve("launch_config.cppconfig")
-            val launchConfig = Maps.newHashMap<String, Any>(
-                mapOf(
-                    "world_info" to mapOf(
-                        "level_id" to (config.worldFolderName ?: UUID.randomUUID().toString()),
-                    ),
-                    "room_info" to Maps.newHashMap<String, Any>(),
-                    "player_info" to mapOf(
-                        "urs" to "",
-                        "user_id" to 0,
-                        "user_name" to (config.userName ?: "DevOps")
-                    ),
-                    "skin_info" to mapOf(
-                        "slim" to false,
-                        "skin" to gamePath.parent.resolve("data/skin_packs/vanilla/steve.png").toString()
-                    )
+            val launchConfig = mapOf(
+                "world_info" to mapOf(
+                    "level_id" to config.worldFolderName,
+                ),
+                "room_info" to Maps.newHashMap<String, Any>(),
+                "player_info" to mapOf(
+                    "urs" to "",
+                    "user_id" to 0,
+                    "user_name" to config.userName
+                ),
+                "skin_info" to mapOf(
+                    "slim" to false,
+                    "skin" to gamePath.parent.resolve("data/skin_packs/vanilla/steve.png").toString()
                 )
             )
             Files.newBufferedWriter(launchConfigPath).use { writer ->
                 gson.toJson(launchConfig, writer)
             }
+
+            // 返回命令行对象
+            return GeneralCommandLine()
+                .withExePath(gamePath.absolutePathString())
+                .withParameters("config=${launchConfigPath.absolutePathString()}")
         }
     }
-
-    data class PackManifest(
-        @SerializedName("pack_id") val packId: String,
-        @SerializedName("version") val version: List<Int>
-    )
 }

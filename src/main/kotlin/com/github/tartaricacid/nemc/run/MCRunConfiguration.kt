@@ -1,8 +1,7 @@
 package com.github.tartaricacid.nemc.run
 
 import com.github.tartaricacid.nemc.gui.MCSettingsEditor
-import com.github.tartaricacid.nemc.setting.MCRunConfigurationOptions
-import com.github.tartaricacid.nemc.util.PathUtils
+import com.github.tartaricacid.nemc.options.MCRunConfigurationOptions
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.*
@@ -27,24 +26,7 @@ class MCRunConfiguration(project: Project, factory: ConfigurationFactory?, name:
         return object : CommandLineState(environment) {
             @Throws(ExecutionException::class)
             override fun startProcess(): ProcessHandler {
-                val gameExecutablePath = options.gameExecutablePath
-                if (gameExecutablePath.isNullOrEmpty()) {
-                    throw ExecutionException("Game executable path is not set.")
-                }
-
-                BeforeRun.check(project, options)
-
-                val worldDir = PathUtils.worldsDir() ?: throw ExecutionException("Worlds directory not found.")
-                val worldFolder = options.worldFolderName ?: throw ExecutionException("Worlds directory not found.")
-                val launchConfigPath = worldDir.resolve(worldFolder).resolve("launch_config.cppconfig")
-                if (!launchConfigPath.toFile().exists()) {
-                    throw ExecutionException("Launch configuration file not found: $launchConfigPath")
-                }
-
-                val commandLine = GeneralCommandLine()
-                    .withExePath(gameExecutablePath)
-                    .withParameters("config=${launchConfigPath.toAbsolutePath()}")
-
+                val commandLine = ConfigRunTask.run(project, options)
                 val processHandler = ProcessHandlerFactory.getInstance().createColoredProcessHandler(commandLine)
                 ProcessTerminatedListener.attach(processHandler)
                 return processHandler
