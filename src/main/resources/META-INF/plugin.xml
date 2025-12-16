@@ -3,7 +3,28 @@
     <name>MC Studio Helper</name>
     <vendor email="baka943@qq.com" url="https://github.com/TartaricAcid">TartaricAcid</vendor>
     <description><![CDATA[
-    为网易我的世界中国版提供组件开发与调试支持的非官方插件，旨在提升在 PyCharm 平台上的组件开发效率。
+    <div>
+      <h2>MC Studio Helper</h2>
+      <p>为网易我的世界中国版提供组件开发与调试支持的非官方插件。<br/>An unofficial plugin to support component development and debugging for Minecraft China Edition.</p>
+
+      <h3>功能 / Features</h3>
+      <ul>
+        <li>在 PyCharm 中添加运行配置，直接运行开发端。<br/>Add run configurations in PyCharm to launch the game client directly.</li>
+        <li>运行配置支持协同运行组件、测试世界规则等。<br/>Support coordinated component runs and testing world rules.</li>
+        <li>将开发端日志重定向到 PyCharm 的日志控制台并提供着色支持。<br/>Redirect game logs to the PyCharm console with coloring support.</li>
+        <li>在游戏中通过快捷键快速重载组件与世界（例如按键 R 或小键盘 0）。<br/>Quickly reload scripts and worlds in-game via hotkeys (e.g., R or Numpad 0).</li>
+      </ul>
+
+      <h3>鸣谢 / Acknowledgements</h3>
+      <ul>
+        <li>感谢 Zero123 的 MCDevTool 提供的思路与部分代码。<br/>Thanks to Zero123 and MCDevTool for ideas and partial code.</li>
+        <li>感谢 CloudburstMC 的基岩版 NBT 解析库。<br/>Thanks to CloudburstMC for the Bedrock NBT parsing library.</li>
+        <li>感谢 QuMod 开发者交流群的各位朋友提供的帮助。<br/>Thanks to the QuMod developer community for their assistance.</li>
+      </ul>
+
+      <h3>源码与协议 / Source & License</h3>
+      <p>源码：<a href="https://github.com/TartaricAcid/MCStudioHelper">https://github.com/TartaricAcid/MCStudioHelper</a><br/>本插件遵循 MIT 开源协议发布，详见 LICENSE 文件。<br/>Source: <a href="https://github.com/TartaricAcid/MCStudioHelper">GitHub repository</a><br/>License: MIT (see LICENSE file).</p>
+    </div>
     ]]></description>
     <depends>com.intellij.modules.python</depends>
     <extensions defaultExtensionNs="com.intellij">
