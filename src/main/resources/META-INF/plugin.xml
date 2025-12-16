@@ -1,12 +1,12 @@
 <idea-plugin>
-    <id>com.github.tartaricacid.nemc</id>
-    <name>Netease MC Development</name>
+    <id>com.github.tartaricacid.mcshelper</id>
+    <name>MC Studio Helper</name>
     <vendor email="baka943@qq.com" url="https://github.com/TartaricAcid">TartaricAcid</vendor>
     <description><![CDATA[
     为网易我的世界中国版提供组件开发与调试支持的非官方插件，旨在提升在 PyCharm 平台上的组件开发效率。
     ]]></description>
     <depends>com.intellij.modules.python</depends>
     <extensions defaultExtensionNs="com.intellij">
-        <configurationType implementation="com.github.tartaricacid.nemc.MCRunConfigurationType"/>
+        <configurationType implementation="com.github.tartaricacid.mcshelper.MCRunConfigurationType"/>
     </extensions>
 </idea-plugin>

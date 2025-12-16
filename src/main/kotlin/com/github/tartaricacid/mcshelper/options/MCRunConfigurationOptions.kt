@@ -1,4 +1,4 @@
-package com.github.tartaricacid.nemc.options
+package com.github.tartaricacid.mcshelper.options
 
 import com.intellij.execution.configurations.RunConfigurationOptions
 import java.util.*

@@ -1,4 +1,4 @@
-package com.github.tartaricacid.nemc.options
+package com.github.tartaricacid.mcshelper.options
 
 enum class LogLevel {
     /**

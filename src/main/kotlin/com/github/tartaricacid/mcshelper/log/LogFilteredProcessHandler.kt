@@ -1,8 +1,8 @@
-package com.github.tartaricacid.nemc.log
+package com.github.tartaricacid.mcshelper.log
 
-import com.github.tartaricacid.nemc.options.LogLevel
-import com.github.tartaricacid.nemc.options.MCRunConfigurationOptions
-import com.github.tartaricacid.nemc.util.PathUtils
+import com.github.tartaricacid.mcshelper.options.LogLevel
+import com.github.tartaricacid.mcshelper.options.MCRunConfigurationOptions
+import com.github.tartaricacid.mcshelper.util.PathUtils
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.KillableProcessHandler

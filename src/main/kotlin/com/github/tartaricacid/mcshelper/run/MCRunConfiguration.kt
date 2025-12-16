@@ -1,8 +1,8 @@
-package com.github.tartaricacid.nemc.run
+package com.github.tartaricacid.mcshelper.run
 
-import com.github.tartaricacid.nemc.gui.MCSettingsEditor
-import com.github.tartaricacid.nemc.log.LogFilteredProcessHandler
-import com.github.tartaricacid.nemc.options.MCRunConfigurationOptions
+import com.github.tartaricacid.mcshelper.gui.MCSettingsEditor
+import com.github.tartaricacid.mcshelper.log.LogFilteredProcessHandler
+import com.github.tartaricacid.mcshelper.options.MCRunConfigurationOptions
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.*

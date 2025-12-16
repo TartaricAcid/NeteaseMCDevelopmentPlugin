@@ -1,12 +1,10 @@
-# Netease MC Development Plugin (Unofficial)
+# MC Studio Helper（MC Studio 助手）
 
-<img src="https://img.shields.io/badge/license-MIT-green" alt="License">    
-
-网易我的世界中国版开发插件（非官方）
+<img src="https://img.shields.io/badge/license-MIT-green" alt="License">
 
 本插件为网易我的世界中国版（Minecraft 中国版，网易代理）提供组件开发与调试支持，面向 PyCharm 软件使用的插件。
 
-> 注意：`Netease` 为网易公司的商标，本插件与网易官方无从属关系，仅供个人学习与开发使用。
+> 注意：本插件与网易官方无任何从属关系，仅供个人学习与开发使用。
 
 ## 简短说明
 

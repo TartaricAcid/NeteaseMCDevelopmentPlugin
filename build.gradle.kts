@@ -7,7 +7,7 @@ plugins {
     id("org.jetbrains.intellij.platform") version "2.10.5"
 }
 
-group = "com.github.tartaricacid.nemc"
+group = "com.github.tartaricacid.mcshelper"
 version = "1.0.0"
 
 repositories {

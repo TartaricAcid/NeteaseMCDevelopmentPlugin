@@ -1,4 +1,4 @@
-package com.github.tartaricacid.nemc.util
+package com.github.tartaricacid.mcshelper.util
 
 import com.intellij.execution.ExecutionException
 import java.io.File

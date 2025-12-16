@@ -1,11 +1,11 @@
-package com.github.tartaricacid.nemc.gui
+package com.github.tartaricacid.mcshelper.gui
 
-import com.github.tartaricacid.nemc.options.GameMode
-import com.github.tartaricacid.nemc.options.LevelType
-import com.github.tartaricacid.nemc.options.LogLevel
-import com.github.tartaricacid.nemc.run.MCRunConfiguration
-import com.github.tartaricacid.nemc.util.FileUtils
-import com.github.tartaricacid.nemc.util.PathUtils
+import com.github.tartaricacid.mcshelper.options.GameMode
+import com.github.tartaricacid.mcshelper.options.LevelType
+import com.github.tartaricacid.mcshelper.options.LogLevel
+import com.github.tartaricacid.mcshelper.run.MCRunConfiguration
+import com.github.tartaricacid.mcshelper.util.FileUtils
+import com.github.tartaricacid.mcshelper.util.PathUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.fileChooser.FileChooser

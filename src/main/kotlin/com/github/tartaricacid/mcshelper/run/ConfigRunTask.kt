@@ -1,12 +1,12 @@
-package com.github.tartaricacid.nemc.run
+package com.github.tartaricacid.mcshelper.run
 
-import com.github.tartaricacid.nemc.options.MCRunConfigurationOptions
-import com.github.tartaricacid.nemc.util.FileUtils
-import com.github.tartaricacid.nemc.util.LevelDataUtils
-import com.github.tartaricacid.nemc.util.PackUtils
-import com.github.tartaricacid.nemc.util.PackUtils.PackInfo
-import com.github.tartaricacid.nemc.util.PackUtils.PackType
-import com.github.tartaricacid.nemc.util.PathUtils
+import com.github.tartaricacid.mcshelper.options.MCRunConfigurationOptions
+import com.github.tartaricacid.mcshelper.util.FileUtils
+import com.github.tartaricacid.mcshelper.util.LevelDataUtils
+import com.github.tartaricacid.mcshelper.util.PackUtils
+import com.github.tartaricacid.mcshelper.util.PackUtils.PackInfo
+import com.github.tartaricacid.mcshelper.util.PackUtils.PackType
+import com.github.tartaricacid.mcshelper.util.PathUtils
 import com.google.common.collect.Lists
 import com.google.common.collect.Maps
 import com.google.gson.Gson
@@ -211,8 +211,8 @@ class ConfigRunTask {
             val targetModDirs = Gson().toJson(listOf(projectLinuxStylePath))
 
             val pluginEnv = mutableMapOf(
-                "NEMC_DEBUG_OPTIONS" to debugOptions,
-                "NEMC_TARGET_MOD_DIRS" to targetModDirs
+                "MCS_HELPER_DEBUG_OPTIONS" to debugOptions,
+                "MCS_HELPER_TARGET_MOD_DIRS" to targetModDirs
             )
 
             // 返回命令行对象

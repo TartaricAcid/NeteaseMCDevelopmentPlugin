@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "nemc-dev-plugin"
+rootProject.name = "mcs-helper"

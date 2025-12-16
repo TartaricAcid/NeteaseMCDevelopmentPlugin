@@ -2,8 +2,8 @@
 import os
 from json import loads
 
-_DEBUG_INFO = loads(os.environ.get("NEMC_DEBUG_OPTIONS", "{}"))
-_TARGET_MOD_DIRS = loads(os.environ.get("NEMC_TARGET_MOD_DIRS", "[]"))
+_DEBUG_INFO = loads(os.environ.get("MCS_HELPER_DEBUG_OPTIONS", "{}"))
+_TARGET_MOD_DIRS = loads(os.environ.get("MCS_HELPER_TARGET_MOD_DIRS", "[]"))
 
 try:
     DEBUG_CONFIG = loads(_DEBUG_INFO) if not isinstance(_DEBUG_INFO, dict) else _DEBUG_INFO

@@ -1,4 +1,4 @@
-package com.github.tartaricacid.nemc.util
+package com.github.tartaricacid.mcshelper.util
 
 import com.google.gson.JsonParser
 import java.nio.file.Files
