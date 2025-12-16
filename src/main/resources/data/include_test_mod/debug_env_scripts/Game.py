@@ -15,9 +15,9 @@ def _RELOAD_MOD():
 
 def RELOAD_MOD():
     import gui
-    msg = "[Dev] Scripts reloaded successfully."
+    msg = "[Dev] 脚本重载成功"
     if not _RELOAD_MOD():
-        msg = "[Dev] No script updates found."
+        msg = "[Dev] 未检测到脚本更新"
     gui.set_left_corner_notify_msg(msg)
     print(msg)
 

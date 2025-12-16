@@ -123,6 +123,12 @@ class LogFilteredProcessHandler(commandLine: GeneralCommandLine, val options: MC
         // 移除已处理部分（包括换行符）
         buf.delete(0, newlineIndex + 1)
 
+        // System 级别的日志，不能着色，直接输出
+        if (outputType == ProcessOutputTypes.SYSTEM) {
+            myAnsiEscapeDecoder.escapeText(line + "\n", outputType, this)
+            return
+        }
+
         // 依据日志等级处理
         line = if (options.logLevel == LogLevel.VERBOSE) {
             handleVerboseLog(line) ?: return

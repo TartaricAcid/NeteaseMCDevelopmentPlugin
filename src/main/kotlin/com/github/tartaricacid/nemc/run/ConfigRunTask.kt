@@ -191,11 +191,11 @@ class ConfigRunTask {
             // TODO：以后运行用户可以自定义按键
             val debugOptions = Gson().toJson(
                 mapOf(
-                    // 键码查阅：https://mc.163.com/dev/mcmanual/mc-dev/mcdocs/1-ModAPI-beta/%E6%9E%9A%E4%B8%BE%E5%80%BC/KeyBoardType.html
+                    // 键码查阅：https://mc.163.com/dev/mcmanual/mc-dev/mcdocs/1-ModAPI/%E6%9E%9A%E4%B8%BE%E5%80%BC/KeyBoardType.html
                     // 绑定热更新快捷键
-                    "reload_key" to 82,
+                    "reload_key" to 82, // R 键
                     // 绑定重载世界快捷键
-                    "reload_world_key" to "",
+                    "reload_world_key" to 96, // 小键盘 0 键
                     // 绑定重载 Addon 快捷键
                     "reload_addon_key" to "",
                     // 绑定重载着色器快捷键
