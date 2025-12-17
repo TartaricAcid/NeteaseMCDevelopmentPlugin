@@ -6,6 +6,7 @@ import kotlin.random.Random
 
 class MCRunConfigurationOptions : RunConfigurationOptions() {
     private val gameExecutablePathProperty = string("").provideDelegate(this, "gameExecutablePath")
+    private val mcdbgExecutablePathProperty = string("").provideDelegate(this, "mcdbgExecutablePath")
 
     private val logLevelProperty = enum(LogLevel.NORMAL).provideDelegate(this, "logLevel")
     private val includedModDirsProperty = list<String>().provideDelegate(this, "includedModDirs")
@@ -25,6 +26,10 @@ class MCRunConfigurationOptions : RunConfigurationOptions() {
     var gameExecutablePath: String?
         get() = gameExecutablePathProperty.getValue(this)
         set(path) = gameExecutablePathProperty.setValue(this, path)
+
+    var mcdbgExecutablePath: String?
+        get() = mcdbgExecutablePathProperty.getValue(this)
+        set(path) = mcdbgExecutablePathProperty.setValue(this, path)
 
     var logLevel: LogLevel
         get() = logLevelProperty.getValue(this)

@@ -27,6 +27,7 @@
     </div>
     ]]></description>
     <depends>com.intellij.modules.python</depends>
+    <depends>com.redhat.devtools.lsp4ij</depends>
     <extensions defaultExtensionNs="com.intellij">
         <configurationType implementation="com.github.tartaricacid.mcshelper.MCRunConfigurationType"/>
     </extensions>

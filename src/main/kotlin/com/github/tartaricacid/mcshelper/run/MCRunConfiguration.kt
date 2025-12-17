@@ -9,6 +9,7 @@ import com.intellij.execution.configurations.*
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 
@@ -30,6 +31,12 @@ class MCRunConfiguration(project: Project, factory: ConfigurationFactory?, name:
                 val processHandler = LogFilteredProcessHandler(commandLine, options)
                 ProcessTerminatedListener.attach(processHandler)
                 return processHandler
+            }
+
+            override fun createConsole(executor: Executor): ConsoleView? {
+                val consoleView = super.createConsole(executor)
+                consoleView?.addMessageFilter(PythonErrorFilter(project))
+                return consoleView
             }
         }
     }

@@ -14,6 +14,7 @@ import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.EnumComboBoxModel
 import com.intellij.ui.TextFieldWithHistoryWithBrowseButton
 import com.intellij.ui.ToolbarDecorator
@@ -41,6 +42,7 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
     private val runConfig: JComponent
 
     private lateinit var gameExeField: TextFieldWithHistoryWithBrowseButton
+    private lateinit var mcdbgExeField: TextFieldWithBrowseButton
 
     private lateinit var logLevel: ComboBox<LogLevel>
     private lateinit var includedModDirs: JBList<String>
@@ -59,17 +61,31 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
     private lateinit var doWeatherCycleField: JBCheckBox
 
     init {
-        val fileChooser = FileChooserDescriptorFactory.singleFile()
-            .withTitle("启动程序路径")
-            .withDescription("请选择网易开发者游戏启动器所在路径")
-            .withExtensionFilter("exe")
-
         runConfig = panel {
             row("启动程序路径：") {
+                val fileChooser = FileChooserDescriptorFactory.singleFile()
+                    .withTitle("启动程序路径")
+                    .withDescription("请选择网易开发者游戏启动器所在路径")
+                    .withExtensionFilter("exe")
                 gameExeField = textFieldWithHistoryWithBrowseButton(
                     null, fileChooser, FileUtils.Companion::findMinecraftExecutables
                 )
-                cell(gameExeField).comment("开发者游戏启动器所在路径").align(Align.Companion.FILL)
+                cell(gameExeField).comment("开发者游戏启动器所在路径").align(Align.FILL)
+            }
+
+            row("MCDBG 路径：") {
+                val mcdbgFileChooser = FileChooserDescriptorFactory.singleFile()
+                    .withTitle("MCDBG 程序路径")
+                    .withDescription("请选择 mcdbg 可执行程序所在路径")
+                    .withExtensionFilter("exe")
+
+                mcdbgExeField = com.intellij.ui.components.textFieldWithBrowseButton(null, mcdbgFileChooser)
+                cell(mcdbgExeField).comment(
+                    """
+                    MCDBG 可执行程序所在路径，用于断点调试&nbsp;
+                    <a href="https://github.com/Dofes/mcpdb/releases">下载 MCDBG...</a>
+                    """.trimIndent()
+                ).align(Align.FILL)
             }
 
             row("日志等级：") {
@@ -100,7 +116,7 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
                         }
                     }.createPanel()
 
-                cell(toolbar).align(Align.Companion.FILL)
+                cell(toolbar).comment("与当前运行的游戏实例一同加载的组件目录").align(Align.FILL)
             }
 
             collapsibleGroup("世界设置") {
@@ -194,6 +210,10 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
             gameExeField.text = config.options.gameExecutablePath
         }
 
+        if (!config.options.mcdbgExecutablePath.isNullOrEmpty()) {
+            mcdbgExeField.text = config.options.mcdbgExecutablePath.toString()
+        }
+
         logLevel.selectedItem = config.options.logLevel
 
         var includedModDirsData = includedModDirs.model
@@ -230,6 +250,7 @@ class MCSettingsEditor : SettingsEditor<MCRunConfiguration>() {
             throw ConfigurationException("启动程序路径不能为空", "配置错误")
         }
         config.options.gameExecutablePath = gameExeField.text
+        config.options.mcdbgExecutablePath = mcdbgExeField.text
 
         config.options.logLevel = logLevel.selectedItem as LogLevel
 

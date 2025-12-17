@@ -18,12 +18,11 @@ repositories {
 }
 
 dependencies {
-    // 用来解析基岩版 NBT 的库
-    implementation("org.cloudburstmc:nbt:3.0.3.Final")
-
     intellijPlatform {
         pycharmCommunity("2025.2.3")
         bundledPlugin("PythonCore")
+
+        plugin("com.redhat.devtools.lsp4ij:0.19.0")
     }
 }
 

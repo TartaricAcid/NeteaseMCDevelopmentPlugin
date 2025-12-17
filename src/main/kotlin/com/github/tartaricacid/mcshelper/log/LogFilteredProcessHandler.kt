@@ -7,11 +7,16 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.KillableProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Key
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
+import kotlin.io.path.exists
 
 const val RESET: String = "\u001B[0m"
 const val RED: String = "\u001B[31m"
@@ -71,8 +76,7 @@ class LogFilteredProcessHandler(commandLine: GeneralCommandLine, val options: MC
         super.startNotify()
 
         // 启动进程时，按照规范标准开始打印，并添加一些额外系统信息
-        val timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
-        val header = "$BOLD$CYAN[$timeStr] [INFO] [System] "
+        val header = this.getRunHeader()
 
         myAnsiEscapeDecoder.escapeText(
             "${header}开始运行游戏$RESET\n",
@@ -107,7 +111,63 @@ class LogFilteredProcessHandler(commandLine: GeneralCommandLine, val options: MC
             "${header}包含组件目录：$includedModsText$RESET\n",
             ProcessOutputTypes.STDOUT, this
         )
+
+        // mcdbg.exe 路径检查
+        val mcdbgPath = options.mcdbgExecutablePath
+        if (mcdbgPath.isNullOrEmpty()) {
+            myAnsiEscapeDecoder.escapeText(
+                "${header}未配置 mcdbg.exe 路径，无法使用断点调试功能$RESET\n",
+                ProcessOutputTypes.STDERR, this
+            )
+            return
+        }
+
+        if (!Paths.get(mcdbgPath).exists()) {
+            myAnsiEscapeDecoder.escapeText(
+                "${header}mcdbg.exe 文件不存在，无法使用断点调试功能$RESET\n",
+                ProcessOutputTypes.STDERR, this
+            )
+            return
+        }
+
+        executeMcdbgProgramAsync(mcdbgPath)
     }
+
+    private fun executeMcdbgProgramAsync(exePaths: String) {
+        // 延迟 5 秒后执行 mcdbg.exe，确保游戏进程已经启动
+        AppExecutorUtil.getAppScheduledExecutorService().schedule({
+            try {
+                val process = GeneralCommandLine()
+                    .withExePath(exePaths)
+                    .createProcess()
+
+                val exitCode = process.waitFor()
+                val header = getRunHeader()
+
+                ApplicationManager.getApplication().invokeLater {
+                    if (exitCode == 0) {
+                        myAnsiEscapeDecoder.escapeText(
+                            "${header}成功附加 mcdbg.exe 到游戏进程，已启用断点调试功能$RESET\n",
+                            ProcessOutputTypes.STDOUT, this
+                        )
+                    } else {
+                        myAnsiEscapeDecoder.escapeText(
+                            "${header}mcdbg.exe 附加失败，退出代码：$exitCode$RESET\n",
+                            ProcessOutputTypes.STDERR, this
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                ApplicationManager.getApplication().invokeLater {
+                    myAnsiEscapeDecoder.escapeText(
+                        "${getRunHeader()}执行 mcdbg.exe 失败：${e.message}$RESET\n",
+                        ProcessOutputTypes.STDERR, this
+                    )
+                }
+            }
+        }, 5, TimeUnit.SECONDS)
+    }
+
 
     override fun notifyTextAvailable(text: String, outputType: Key<*>) {
         val buf = buffers.getOrPut(outputType) { StringBuilder() }
@@ -247,5 +307,11 @@ class LogFilteredProcessHandler(commandLine: GeneralCommandLine, val options: MC
             line.contains("VERBOSE", ignoreCase = false) -> DARK_GRAY
             else -> RESET
         }
+    }
+
+    fun getRunHeader(): String {
+        // 启动进程时，按照规范标准开始打印，并添加一些额外系统信息
+        val timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"))
+        return "$BOLD$CYAN[$timeStr] [INFO] [System] "
     }
 }
