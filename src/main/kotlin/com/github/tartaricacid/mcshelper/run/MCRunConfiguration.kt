@@ -11,7 +11,9 @@ import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 
 class MCRunConfiguration(project: Project, factory: ConfigurationFactory?, name: String?) :
     RunConfigurationBase<MCRunConfigurationOptions?>(project, factory, name) {
@@ -26,12 +28,13 @@ class MCRunConfiguration(project: Project, factory: ConfigurationFactory?, name:
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
         return object : CommandLineState(environment) {
             @Throws(ExecutionException::class)
-            override fun startProcess(): ProcessHandler {
-                val commandLine = ConfigRunTask.run(project, options)
-                val processHandler = LogFilteredProcessHandler(commandLine, options)
-                ProcessTerminatedListener.attach(processHandler)
-                return processHandler
-            }
+            override fun startProcess(): ProcessHandler = ProgressManager.getInstance()
+                .runProcessWithProgressSynchronously(ThrowableComputable<ProcessHandler, ExecutionException> {
+                    val commandLine = ConfigRunTask.run(project, options)
+                    val processHandler = LogFilteredProcessHandler(commandLine, options)
+                    ProcessTerminatedListener.attach(processHandler)
+                    processHandler
+                }, "正在准备运行环境...", true, project)
 
             override fun createConsole(executor: Executor): ConsoleView? {
                 val consoleView = super.createConsole(executor)

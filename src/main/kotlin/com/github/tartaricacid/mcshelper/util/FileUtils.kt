@@ -1,7 +1,11 @@
 package com.github.tartaricacid.mcshelper.util
 
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.util.ExecUtil
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -14,6 +18,10 @@ import javax.swing.filechooser.FileSystemView
 
 class FileUtils {
     companion object {
+        private val logger by lazy {
+            Logger.getInstance(FileUtils::class.java)
+        }
+
         fun findFile(project: Project, relativePath: String): VirtualFile? {
             val fileName = relativePath.substringAfterLast('/')
             val scope = GlobalSearchScope.projectScope(project)
@@ -65,13 +73,48 @@ class FileUtils {
 
         /**
          * 创建符号链接
+         * @return false 代表需要提权
          */
-        fun createSymlink(target: Path, link: Path) {
+        fun createSymlink(target: Path, link: Path): Boolean {
+            // 如果 link 已经是指向 target 的 symlink, 提前结束
+            if (Files.isSymbolicLink(link) && Files.isSameFile(link, target)) {
+                return true
+            }
+
+            // 如果 target 存在但不是 symlink, 报错
+            if (Files.exists(link) && !Files.isSymbolicLink(link)) {
+                logger.error("$link 已存在但不是指向 $target 的符号链接")
+                return true
+            }
+
             try {
                 Files.createSymbolicLink(link, target)
             } catch (e: Exception) {
-                // FIXME: Windows 下可能会因为权限问题创建失败，应该弹出 idea 弹窗提示用户
-                e.printStackTrace()
+                val privilege = e is FileSystemException && e.message?.contains("privilege") == true
+                val windows = System.getProperty("os.name").startsWith("Windows")
+                if (privilege && windows) {
+                    return false
+                } else {
+                    logger.error(e)
+                }
+            }
+            return true
+        }
+
+        fun sudoCreateSymlinks(targetToLinks: List<Pair<Path, Path>>) {
+            val windows = System.getProperty("os.name").startsWith("Windows")
+            if (!windows) throw NotImplementedError("for now, only sudo for windows is implemented")
+            var scriptContent = "@echo off\r\n"
+            scriptContent += targetToLinks.joinToString("\r\n") { (target, link) ->
+                "mklink /D $link $target"
+            }
+            val tempBatchFile = FileUtil.createTempFile("mcshelper", ".bat", true)
+            FileUtil.writeToFile(tempBatchFile, scriptContent)
+            val commandLine = GeneralCommandLine(tempBatchFile.absolutePath)
+            val sudoCommand = ExecUtil.sudoCommand(commandLine, "插件需要管理员权限以配置系统环境")
+            val output = ExecUtil.execAndGetOutput(sudoCommand)
+            if (output.exitCode != 0) {
+                logger.error("无法正确创建符号链接 (${output.exitCode})", output.stderrLines.joinToString("\n"))
             }
         }
 

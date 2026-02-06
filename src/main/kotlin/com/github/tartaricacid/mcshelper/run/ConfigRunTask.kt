@@ -16,6 +16,7 @@ import com.intellij.openapi.project.Project
 import org.cloudburstmc.nbt.NbtMap
 import org.cloudburstmc.nbt.NbtMapBuilder
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import kotlin.io.path.absolutePathString
@@ -53,6 +54,7 @@ class ConfigRunTask {
             }
 
             // 创建符号链接
+            val sudoRequiredSymlinks = mutableSetOf<Pair<Path, Path>>()
             for ((type, packList) in packMaps) {
                 val targetDir = when (type) {
                     PackType.BEHAVIOR -> PathUtils.behaviorPacksDir()
@@ -62,8 +64,17 @@ class ConfigRunTask {
                     continue
                 }
                 for (pack in packList) {
-                    FileUtils.createSymlink(pack.path, targetDir.resolve(pack.uuid))
+                    val target = pack.path
+                    val link = targetDir.resolve(pack.uuid)
+                    if (!FileUtils.createSymlink(target, link)) {
+                        sudoRequiredSymlinks += target to link
+                    }
                 }
+            }
+
+            // 如有需提权的符号链接，则合并提权创建
+            if (sudoRequiredSymlinks.isNotEmpty()) {
+                FileUtils.sudoCreateSymlinks(sudoRequiredSymlinks.toList())
             }
 
             // 解压（强制覆盖）测试模组
